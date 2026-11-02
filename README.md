@@ -2,7 +2,7 @@
 
 > A personal spending simulator that helps me see what happens to my money before I make a big purchase.
 
-**Author:** Jimmy Casiano Diaz · **Course:** CMP 464/343 Product 1 · **Last updated:** November 1, 2026
+**Author:** Jimmy Casiano Diaz · **Course:** CMP 464/343 Product 1 · **Last updated:** November 2, 2026
 
 ---
 
@@ -24,10 +24,10 @@ I also tend to keep everything in one mental bucket. I do not clearly separate w
 
 **What it costs me:**
 
-- ⏱️ Time: I repeatedly stop and mentally calculate what I need to survive until my next paycheck whenever I am considering a large purchase.
-- 💸 Money: Large purchases can be hundreds or thousands of dollars. Forgotten recurring charges can also cause my account to temporarily go negative.
-- 🔋 Energy: I keep several things in my head at once, including checking balance, credit-card balance, bills, necessities, my next paycheck, and future plans.
-- 🙂 Joy: I like spending money on things I enjoy, but I can feel unsure about spending because I do not always know what portion of my balance is actually free.
+- Time: I repeatedly stop and mentally calculate what I need to survive until my next paycheck whenever I am considering a large purchase.
+- Money: Large purchases can be hundreds or thousands of dollars. Forgotten recurring charges can also cause my account to temporarily go negative.
+- Energy: I keep several things in my head at once, including checking balance, credit-card balance, bills, necessities, my next paycheck, and future plans.
+- Joy: I like spending money on things I enjoy, but I can feel unsure about spending because I do not always know what portion of my balance is actually free.
 
 ---
 
@@ -103,6 +103,7 @@ I also tend to keep everything in one mental bucket. I do not clearly separate w
 - Savings goals for trips, Christmas, or future purchases.
 - Side-by-side scenario comparison.
 - Smarter estimates based on previous spending.
+- Persistent local storage using Room so balances, bills, paychecks, necessities, and scenarios can be saved between uses.
 
 **Not doing:**
 
@@ -128,7 +129,7 @@ I also tend to keep everything in one mental bucket. I do not clearly separate w
 | Piece | Choice | Why |
 |---|---|---|
 | Server / API | None for MVP | The calculations can happen locally on the phone, so I do not need a server yet |
-| Data storage | Room / local Android storage | I need to save balances, paychecks, bills, necessities, and scenarios between uses |
+| Data storage | In-memory Compose state | The MVP only needs the values while I am testing a purchase. Persistent saved scenarios can be added later |
 | Outside services (optional) | None for MVP | Manual input keeps the first version simple and avoids bank integrations |
 | Hosting / deploy | Local Android app | The first version only needs to run on my phone or Android emulator |
 
@@ -137,18 +138,17 @@ I also tend to keep everything in one mental bucket. I do not clearly separate w
 ```mermaid
 flowchart LR
   U["Me"] --> FE["Android App: Kotlin + Jetpack Compose"]
-  FE --> API["ViewModel / Calculation Logic"]
-  API --> DB[("Local Data: balances, bills, paychecks, necessities")]
+  FE --> LOGIC["Compose State + Calculation Logic"]
+  LOGIC --> RESULT["Projection Results: safe-to-spend, timeline, graph"]
 ```
 
 ---
 
 ## 6. Open Questions
 
-- What should the final visual design look like: timeline, line graph, cards, or a combination?
-- Exactly how should "safe to spend" be calculated?
+- Exactly how should "safe to spend" be calculated as the product becomes more advanced?
 - How should required bills be separated from flexible necessities such as food, OMNY, and Uber?
-- Should hypothetical purchase scenarios be saved after I finish looking at them?
 - How should protected money for trips or other future plans affect the safe-to-spend amount?
-- How should credit-card payments be handled if I do not always pay the entire balance immediately?
+- Should future versions save and compare multiple hypothetical purchase scenarios?
 - When should the product consider me financially comfortable again after a large purchase?
+- Should future versions use previous spending to help estimate necessities automatically?
