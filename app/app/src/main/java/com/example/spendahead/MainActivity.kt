@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -72,9 +73,14 @@ fun SpendAheadScreen(
 
     var technicallyAvailable by remember { mutableStateOf(0.0) }
     var safeToSpend by remember { mutableStateOf(0.0) }
-    var afterPurchase by remember { mutableStateOf(0.0) }
+
+    var checkingAfterPurchase by remember { mutableStateOf(0.0) }
+    var safePositionAfterPurchase by remember { mutableStateOf(0.0) }
+    var afterBillsAndNeeds by remember { mutableStateOf(0.0) }
+
     var projectedCreditDebt by remember { mutableStateOf(0.0) }
     var remainingCreditDebt by remember { mutableStateOf(0.0) }
+
     var afterPaycheckOne by remember { mutableStateOf(0.0) }
     var afterCreditPayment by remember { mutableStateOf(0.0) }
     var afterPaycheckTwo by remember { mutableStateOf(0.0) }
@@ -152,7 +158,6 @@ fun SpendAheadScreen(
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
             FilterChip(
                 selected = !payWithCredit,
                 onClick = {
@@ -190,7 +195,14 @@ fun SpendAheadScreen(
                 safeToSpend =
                     checking - upcomingBills - weeklyNeeds
 
-                afterPurchase =
+                checkingAfterPurchase =
+                    if (payWithCredit) {
+                        checking
+                    } else {
+                        checking - purchase
+                    }
+
+                safePositionAfterPurchase =
                     if (payWithCredit) {
                         safeToSpend
                     } else {
@@ -204,8 +216,11 @@ fun SpendAheadScreen(
                         debt
                     }
 
+                afterBillsAndNeeds =
+                    checkingAfterPurchase - upcomingBills - weeklyNeeds
+
                 afterPaycheckOne =
-                    afterPurchase + paycheck
+                    afterBillsAndNeeds + paycheck
 
                 afterCreditPayment =
                     afterPaycheckOne - creditPayment
@@ -238,15 +253,35 @@ fun SpendAheadScreen(
                 amount = technicallyAvailable
             )
 
-            ResultCard(
+            HighlightResultCard(
                 title = "Safe to Spend",
                 amount = safeToSpend
             )
 
             ResultCard(
-                title = "After Purchase",
-                amount = afterPurchase
+                title = "Checking After Purchase",
+                amount = checkingAfterPurchase
             )
+
+            ResultCard(
+                title = "Safe Spending Position",
+                amount = safePositionAfterPurchase
+            )
+
+            ResultCard(
+                title = "After Bills + Necessities",
+                amount = afterBillsAndNeeds
+            )
+
+            if (checkingAfterPurchase < 0) {
+                WarningCard(
+                    message = "This purchase would put your checking account below $0."
+                )
+            } else if (safePositionAfterPurchase < 0) {
+                WarningCard(
+                    message = "You can technically make this purchase, but it uses money reserved for bills or necessities."
+                )
+            }
 
             ResultCard(
                 title = "Projected Credit Card Debt",
@@ -284,7 +319,8 @@ fun SpendAheadScreen(
             MoneyGraph(
                 values = listOf(
                     technicallyAvailable,
-                    afterPurchase,
+                    checkingAfterPurchase,
+                    afterBillsAndNeeds,
                     afterPaycheckOne,
                     afterCreditPayment,
                     afterPaycheckTwo
@@ -308,11 +344,16 @@ fun SpendAheadScreen(
 
             TimelineItem(
                 label = if (payWithCredit) {
-                    "After purchase on credit"
+                    "Checking after purchase on credit"
                 } else {
-                    "After purchase from checking"
+                    "Checking after purchase"
                 },
-                amount = afterPurchase
+                amount = checkingAfterPurchase
+            )
+
+            TimelineItem(
+                label = "After bills + necessities",
+                amount = afterBillsAndNeeds
             )
 
             TimelineItem(
@@ -364,7 +405,6 @@ fun ResultCard(
                 .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-
             Text(
                 text = title,
                 fontWeight = FontWeight.Medium
@@ -372,9 +412,70 @@ fun ResultCard(
 
             Text(
                 text = "$%.2f".format(amount),
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = if (amount < 0) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                }
             )
         }
+    }
+}
+
+@Composable
+fun HighlightResultCard(
+    title: String,
+    amount: Double
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                text = "$%.2f".format(amount),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
+                color = if (amount < 0) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun WarningCard(
+    message: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(16.dp),
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onErrorContainer
+        )
     }
 }
 
@@ -389,7 +490,6 @@ fun TimelineItem(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             Text(
                 text = label,
                 fontWeight = FontWeight.Medium
@@ -398,7 +498,12 @@ fun TimelineItem(
             Text(
                 text = "$%.2f".format(amount),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = if (amount < 0) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                }
             )
         }
     }
@@ -408,14 +513,12 @@ fun TimelineItem(
 fun MoneyGraph(
     values: List<Double>
 ) {
-
     val lineColor = MaterialTheme.colorScheme.primary
     val pointColor = MaterialTheme.colorScheme.secondary
 
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
-
         Canvas(
             modifier = Modifier
                 .fillMaxWidth()
@@ -481,7 +584,6 @@ fun MoneyGraph(
             )
 
             points.forEach { point ->
-
                 drawCircle(
                     color = pointColor,
                     radius = 10f,
@@ -499,7 +601,6 @@ fun GraphLabels() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-
         Text(
             text = "Start",
             style = MaterialTheme.typography.labelSmall
@@ -507,6 +608,11 @@ fun GraphLabels() {
 
         Text(
             text = "Purchase",
+            style = MaterialTheme.typography.labelSmall
+        )
+
+        Text(
+            text = "Bills",
             style = MaterialTheme.typography.labelSmall
         )
 
