@@ -104,6 +104,7 @@ I also tend to keep everything in one mental bucket. I do not clearly separate w
 - Side-by-side scenario comparison.
 - Smarter estimates based on previous spending.
 - Persistent local storage using Room so balances, bills, paychecks, necessities, and scenarios can be saved between uses.
+- More detailed weekly projections with separate bills, necessities, and optional credit-card use for each week.
 
 **Not doing:**
 
@@ -144,7 +145,23 @@ flowchart LR
 
 ---
 
-## 6. Open Questions
+## 6. Demo
+
+### Entering a purchase scenario
+
+![SpendAhead input screen](demo-input.png)
+
+### Projection results
+
+![SpendAhead projection results](demo-projection.png)
+
+### Money over time
+
+![SpendAhead graph and timeline](demo-timeline.png)
+
+---
+
+## 7. Open Questions
 
 - Exactly how should "safe to spend" be calculated as the product becomes more advanced?
 - How should required bills be separated from flexible necessities such as food, OMNY, and Uber?
